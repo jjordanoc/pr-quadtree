@@ -182,11 +182,11 @@ class QuadNode {
 
     Rect limits;
 
-    QuadNode *parent;
+    std::shared_ptr<QuadNode> parent;
     bool isLeaf = true;
 
 public:
-    QuadNode *children[4]; // NW, NE, SW, SE
+    std::shared_ptr<QuadNode> children[4]; // NW, NE, SW, SE
 
     explicit QuadNode(const Rect &limits) : limits(limits) {}
 
@@ -206,11 +206,11 @@ public:
 
     }
 
-    QuadNode *getParent() const {
+    std::shared_ptr<QuadNode> getParent() const {
         return parent;
     }
 
-    void setParent(QuadNode *parent) {
+    void setParent(std::shared_ptr<QuadNode> parent) {
         QuadNode::parent = parent;
     }
 
@@ -234,18 +234,18 @@ public:
 class QuadTree {
 private:
     Rect limits;
-    QuadNode *root;
+    std::shared_ptr<QuadNode> root;
     size_t bucketSize = 1;
 
     struct KNNTreePair {
-        KNNTreePair(QuadNode *_node, Point2D _query) {
+        KNNTreePair(std::shared_ptr<QuadNode> _node, Point2D _query) {
             distToQuery = Rect::distance(_node->getLimits(), _query);
             node = _node;
         }
-//        KNNTreePair(double distToQuery, QuadNode *node) : distToQuery(distToQuery), node(node) {}
+//        KNNTreePair(double distToQuery, std::shared_ptr<QuadNode>node) : distToQuery(distToQuery), node(node) {}
 
         double distToQuery;
-        QuadNode *node;
+        std::shared_ptr<QuadNode> node;
 
         bool operator<(const KNNTreePair &rhs) const {
             return distToQuery < rhs.distToQuery;
@@ -291,17 +291,17 @@ private:
         }
     };
 
-    void insert(QuadNode *node, Particle &p) {
+    void insert(std::shared_ptr<QuadNode> node, Particle &p) {
         if (node->isLeafNode() && node->particleCount() >= bucketSize) {
             // add to particles but overflows
             node->insert(p);
 
             // create 4 regions and link to parent
             auto splitRegions = node->getLimits().split();
-            auto *nw = new QuadNode(splitRegions[0]);
-            auto *ne = new QuadNode(splitRegions[1]);
-            QuadNode *sw = new QuadNode(splitRegions[2]);
-            QuadNode *se = new QuadNode(splitRegions[3]);
+            std::shared_ptr<QuadNode> nw = std::make_shared<QuadNode>(splitRegions[0]);
+            std::shared_ptr<QuadNode> ne = std::make_shared<QuadNode>(splitRegions[1]);
+            std::shared_ptr<QuadNode> sw = std::make_shared<QuadNode>(splitRegions[2]);
+            std::shared_ptr<QuadNode> se = std::make_shared<QuadNode>(splitRegions[3]);
             node->children[0] = nw;
             node->children[1] = ne;
             node->children[2] = sw;
@@ -342,7 +342,7 @@ private:
 
     }
 //
-//    void knn(QuadNode *node, Point2D query, size_t k, std::priority_queue<KNNPair> &heap) {
+//    void knn(std::shared_ptr<QuadNode>node, Point2D query, size_t k, std::priority_queue<KNNPair> &heap) {
 //
 //    }
 public:
@@ -353,7 +353,7 @@ public:
     void insert(std::vector<Particle> &particles) {
         for (Particle &p: particles) {
             if (root == nullptr) {
-                root = new QuadNode(limits);
+                root = std::make_shared<QuadNode>(limits);
                 root->insert(p);
             } else {
                 insert(root, p);
