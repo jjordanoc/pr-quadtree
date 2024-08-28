@@ -302,6 +302,10 @@ private:
             std::shared_ptr<QuadNode> ne = std::make_shared<QuadNode>(splitRegions[1]);
             std::shared_ptr<QuadNode> sw = std::make_shared<QuadNode>(splitRegions[2]);
             std::shared_ptr<QuadNode> se = std::make_shared<QuadNode>(splitRegions[3]);
+            nw->setParent(node);
+            ne->setParent(node);
+            sw->setParent(node);
+            se->setParent(node);
             node->children[0] = nw;
             node->children[1] = ne;
             node->children[2] = sw;
@@ -341,10 +345,7 @@ private:
         }
 
     }
-//
-//    void knn(std::shared_ptr<QuadNode>node, Point2D query, size_t k, std::priority_queue<KNNPair> &heap) {
-//
-//    }
+
 public:
 
 
@@ -368,43 +369,45 @@ public:
         }
         std::priority_queue<KNNParticlePair, std::vector<KNNParticlePair>, std::less<>> maxHeap;
         std::priority_queue<KNNTreePair, std::vector<KNNTreePair>, std::greater<>> pq;
-        pq.push(KNNTreePair(root, query));
+        pq.emplace(root, query);
         while (!pq.empty()) {
             KNNTreePair curr = pq.top();
             pq.pop();
             if (!curr.node->isLeafNode()) {
                 // cant prune
                 if (maxHeap.size() < k) {
-                    pq.push(KNNTreePair(curr.node->children[0], query));
-                    pq.push(KNNTreePair(curr.node->children[1], query));
-                    pq.push(KNNTreePair(curr.node->children[2], query));
-                    pq.push(KNNTreePair(curr.node->children[3], query));
+                    pq.emplace(curr.node->children[0], query);
+                    pq.emplace(curr.node->children[1], query);
+                    pq.emplace(curr.node->children[2], query);
+                    pq.emplace(curr.node->children[3], query);
                 }
                     // can prune, if its further than the worst nearest no need to check
                 else {
                     if (Rect::distance(curr.node->children[0]->getLimits(), query) < maxHeap.top().distToQuery) {
-                        pq.push(KNNTreePair(curr.node->children[0], query));
+                        pq.emplace(curr.node->children[0], query);
                     } else if (Rect::distance(curr.node->children[1]->getLimits(), query) < maxHeap.top().distToQuery) {
-                        pq.push(KNNTreePair(curr.node->children[1], query));
+                        pq.emplace(curr.node->children[1], query);
                     } else if (Rect::distance(curr.node->children[2]->getLimits(), query) < maxHeap.top().distToQuery) {
-                        pq.push(KNNTreePair(curr.node->children[2], query));
+                        pq.emplace(curr.node->children[2], query);
                     } else if (Rect::distance(curr.node->children[3]->getLimits(), query) < maxHeap.top().distToQuery) {
-                        pq.push(KNNTreePair(curr.node->children[3], query));
+                        pq.emplace(curr.node->children[3], query);
                     }
                 }
             } else {
                 for (Particle &p: curr.node->getParticles()) {
                     if (maxHeap.size() < k) {
-                        maxHeap.push(KNNParticlePair(p, query));
+                        maxHeap.emplace(p, query);
                     } else if (maxHeap.top().distToQuery > query.distance(p.getPosition())) {
                         maxHeap.pop();
-                        maxHeap.push(KNNParticlePair(p, query));
+                        maxHeap.emplace(p, query);
                     }
                 }
             }
 
         }
+
         std::vector<Particle> topK;
+        topK.reserve(k);
         while (!maxHeap.empty()) {
             topK.push_back(maxHeap.top().particle);
             maxHeap.pop();
