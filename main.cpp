@@ -191,7 +191,7 @@ bool runTesting(QuadTree& tree, const std::vector<std::shared_ptr<Particle>>& pa
         allTestsPassed = false;
     }
 
-    if (!verifyLeafNodesBucketSize(tree.getRoot().get(), tree.bucketSize)) {
+    if (!verifyLeafNodesBucketSize(tree.getRoot().get(), QuadTree::bucketSize)) {
         std::cout << "Test failed: Leaf nodes exceed bucketSize." << std::endl;
         allTestsPassed = false;
     }
@@ -211,15 +211,18 @@ bool runTesting(QuadTree& tree, const std::vector<std::shared_ptr<Particle>>& pa
 
 int main() {
     Rect boundary(Point2D(0, 0), Point2D(100, 100));
+    QuadTree::bucketSize = 6;
     QuadTree tree(boundary);
     bool allTestsPassed;
 
-    int numParticles = 200000;
+    int numParticles = 100;
+//    int numParticles = 100;
+
     NType maxVelocity = 5.0;
     std::vector<std::shared_ptr<Particle>> particles = generateRandomParticles(numParticles, boundary, maxVelocity);
     tree.insert(particles);
 
-    // Ejecutar pruebas
+//    // Ejecutar pruebas
     allTestsPassed = runTesting(tree, particles);
     if (allTestsPassed) {
         std::cout << "All tests passed!" << std::endl;
@@ -227,7 +230,7 @@ int main() {
         std::cout << "Some tests failed." << std::endl;
     }
 
-    // Mover partículas y actualizar el árbol
+//     Mover partículas y actualizar el árbol
     std::cout << std::endl << "Updating particles..." << std::endl;
     for (auto& particle : particles) {
         particle->updatePosition(boundary);

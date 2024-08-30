@@ -1,5 +1,7 @@
 #include "QuadTree.h"
 
+size_t QuadTree::bucketSize = 6;
+
 void QuadTree::updateTree() {
     root->updateNode();
 }
@@ -24,53 +26,49 @@ void QuadNode::subdivide() {
     children[3] = se;
 }
 
-bool QuadNode::insert(std::shared_ptr<QuadNode> node, const std::shared_ptr<Particle> &p) {
-    if (node->_isLeaf && node->getParticles().size() >= 1) {
+bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
+    if (_isLeaf && particles.size() >= QuadTree::bucketSize) {
         // add to particles but overflows
-        node->addToBucket(p);
+        addToBucket(particle);
 
         // create 4 regions and link to parent
         subdivide();
 
         // insert the particles in the children
-        for (const std::shared_ptr<Particle> &childParticle: node->getParticles()) {
+        for (const std::shared_ptr<Particle> &childParticle: particles) {
             if (children[0]->boundary.contains(childParticle->getPosition())) {
-                insert(children[0], childParticle);
+                children[0]->insert(childParticle);
             } else if (children[1]->boundary.contains(childParticle->getPosition())) {
-                insert(children[1], childParticle);
+                children[1]->insert(childParticle);
             } else if (children[2]->boundary.contains(childParticle->getPosition())) {
-                insert(children[2], childParticle);
+                children[2]->insert(childParticle);
             } else if (children[3]->boundary.contains(childParticle->getPosition())) {
-                insert(children[3], childParticle);
+                children[3]->insert(childParticle);
             } else {
                 throw std::runtime_error("Child has no candidate node.");
             }
         }
-        node->clearParticles();
-        node->_isLeaf = false;
-    } else if (!node->isLeaf()) {
-        if (node->children[0]->boundary.contains(p->getPosition())) {
-            insert(node->children[0], p);
-        } else if (node->children[1]->boundary.contains(p->getPosition())) {
-            insert(node->children[1], p);
-        } else if (node->children[2]->boundary.contains(p->getPosition())) {
-            insert(node->children[2], p);
-        } else if (node->children[3]->boundary.contains(p->getPosition())) {
-            insert(node->children[3], p);
+        clearParticles();
+        _isLeaf = false;
+    } else if (!_isLeaf) {
+        if (children[0]->boundary.contains(particle->getPosition())) {
+            children[0]->insert(particle);
+        } else if (children[1]->boundary.contains(particle->getPosition())) {
+            children[1]->insert(particle);
+        } else if (children[2]->boundary.contains(particle->getPosition())) {
+            children[2]->insert(particle);
+        } else if (children[3]->boundary.contains(particle->getPosition())) {
+            children[3]->insert(particle);
         } else {
 //            throw std::runtime_error("Child has no candidate node.");
             return false;
         }
     } else {
         // just add particle
-        node->addToBucket(p);
+        addToBucket(particle);
     }
     return true;
-
-}
-
-bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
-    return insert(std::shared_ptr<QuadNode>(this), particle);
+//    return insert(std::shared_ptr<QuadNode>(this), particle);
 }
 
 void QuadNode::updateNode() {
