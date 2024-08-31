@@ -25,7 +25,7 @@ private:
 
     void relocateParticle(const std::shared_ptr<Particle> &particle);
 
-    void removeEmptyNode(QuadNode *emptyChild);
+    void removeEmptyNode();
 
 //    bool insert(std::shared_ptr<QuadNode> node, const std::shared_ptr<Particle> &p);
 
@@ -33,7 +33,7 @@ public:
     QuadNode(NType xmin, NType ymin, NType xmax, NType ymax, QuadNode *parent = nullptr)
             : boundary(Point2D(xmin, ymin), Point2D(xmax, ymax)), parent(parent), _isLeaf(true) {}
 
-    QuadNode(const Rect &boundary, QuadNode *parent = nullptr)
+    explicit QuadNode(const Rect &boundary, QuadNode *parent = nullptr)
             : boundary(boundary), parent(parent), _isLeaf(true) {}
 
     bool insert(const std::shared_ptr<Particle> &particle);

@@ -45,7 +45,10 @@ bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
             } else if (children[3]->boundary.contains(childParticle->getPosition())) {
                 children[3]->insert(childParticle);
             } else {
-                throw std::runtime_error("Child has no candidate node.");
+//                throw std::runtime_error("Child has no candidate node.");
+//                std:: cout << "Child has no candidate node (leaf)." << std::endl;
+//                std::cout << "Particle: " << *childParticle << std::endl;
+                children[3]->insert(childParticle); // misplace anyway
             }
         }
         clearParticles();
@@ -60,21 +63,67 @@ bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
         } else if (children[3]->boundary.contains(particle->getPosition())) {
             children[3]->insert(particle);
         } else {
-//            throw std::runtime_error("Child has no candidate node.");
-            return false;
+//            std:: cout << "Child has no candidate node (not leaf)." << std::endl;
+//            std::cout << "Particle: " << *particle << std::endl;
+            children[3]->insert(particle); // misplace anyway
         }
     } else {
         // just add particle
         addToBucket(particle);
     }
     return true;
-//    return insert(std::shared_ptr<QuadNode>(this), particle);
 }
 
 void QuadNode::updateNode() {
+    if (!_isLeaf) {
+        // update children
+        children[0]->updateNode();
+        children[1]->updateNode();
+        children[2]->updateNode();
+        children[3]->updateNode();
+    } else {
+//        auto it = particles.begin();
+        for (size_t i = 0; i < particles.size(); ++i) {
+            auto particle = particles[i];
+            if (!boundary.contains(particle->getPosition())) {
+                // remove from leaf
+                particles.erase(particles.begin() + i);
+                // if empty, collapse
+                if (particles.empty()) {
+                    removeEmptyNode();
+                }
+                // relocate recursively
+                relocateParticle(particle);
+            }
+        }
+    }
+
 
 }
 
 void QuadNode::addToBucket(const std::shared_ptr<Particle> &particle) {
     particles.push_back(particle);
+}
+
+void QuadNode::relocateParticle(const std::shared_ptr<Particle> &particle) {
+    // note: root always contains all particles
+    if (boundary.contains(particle->getPosition())) {
+        insert(particle);
+    } else {
+        parent->relocateParticle(particle);
+    }
+}
+
+void QuadNode::removeEmptyNode() {
+    // if only one brother exists and its a leaf, collapse recursively
+    QuadNode *onlyBrother = nullptr;
+    for (const auto &smartBrother: parent->children) {
+        QuadNode *brother = smartBrother.get();
+        if (brother == this || brother == nullptr) continue;
+        // cant collapse if non leaf brother exists or if another leaf brother exists
+        if (!brother->_isLeaf || onlyBrother != nullptr) return;
+        onlyBrother = brother;
+    }
+    parent = onlyBrother;
+    parent->removeEmptyNode();
 }

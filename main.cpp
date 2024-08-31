@@ -46,6 +46,11 @@ void traverseTree(QuadNode* node, std::set<std::shared_ptr<Particle>>& foundPart
 bool verifyAllDataIndexed(QuadNode* rootNode, const std::set<std::shared_ptr<Particle>>& insertedParticles) {
     std::set<std::shared_ptr<Particle>> foundParticles;
     traverseTree(rootNode, foundParticles);
+//    std::set<std::shared_ptr<Particle>> diff;
+//    std::set_difference(insertedParticles.begin(), insertedParticles.end(), foundParticles.begin(), foundParticles.end(), std::inserter(diff, diff.begin()));
+//    for (auto e : diff) {
+//        std::cout << (*e) << std::endl;
+//    }
     return foundParticles == insertedParticles;
 }
 
@@ -215,7 +220,7 @@ int main() {
     QuadTree tree(boundary);
     bool allTestsPassed;
 
-    int numParticles = 100;
+    int numParticles = 200000;
 //    int numParticles = 100;
 
     NType maxVelocity = 5.0;
