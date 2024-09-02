@@ -1,4 +1,5 @@
 #include "QuadTree.h"
+#include <queue>
 
 size_t QuadTree::bucketSize = 6;
 
@@ -12,6 +13,61 @@ void QuadTree::insert(const std::vector<std::shared_ptr<Particle>> &particles) {
     for (const auto &particle: particles) {
         root->insert(particle);
     }
+}
+
+std::vector<std::shared_ptr<Particle>> QuadTree::knn(Point2D query, size_t k) {
+    // best-first search the leaves and prune
+    if (root == nullptr || k == 0) {
+        return {};
+    }
+    std::priority_queue<KNNParticlePair, std::vector<KNNParticlePair>, std::less<>> maxHeap;
+    std::priority_queue<KNNTreePair, std::vector<KNNTreePair>, std::greater<>> pq;
+    pq.emplace(root, query);
+    while (!pq.empty()) {
+        KNNTreePair curr = pq.top();
+        pq.pop();
+        if (!curr.node->isLeaf()) {
+            auto children = curr.node->getChildren();
+            // cant prune
+            if (maxHeap.size() < k) {
+                pq.emplace(children[0], query);
+                pq.emplace(children[1], query);
+                pq.emplace(children[2], query);
+                pq.emplace(children[3], query);
+            }
+                // can prune, if its further than the worst nearest no need to check
+            else {
+                if (children[0]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
+                    pq.emplace(children[0], query);
+                } else if (children[1]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
+                    pq.emplace(children[1], query);
+                } else if (children[2]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
+                    pq.emplace(children[2], query);
+                } else if (children[3]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
+                    pq.emplace(children[3], query);
+                }
+            }
+        } else {
+            for (const std::shared_ptr<Particle> &p: curr.node->getParticles()) {
+                if (maxHeap.size() < k) {
+                    maxHeap.emplace(p, query);
+                } else if (maxHeap.top().distToQuery > query.distance(p->getPosition())) {
+                    maxHeap.pop();
+                    maxHeap.emplace(p, query);
+                }
+            }
+        }
+
+    }
+
+    std::vector<std::shared_ptr<Particle>> topK;
+    topK.reserve(k);
+    while (!maxHeap.empty()) {
+        topK.push_back(maxHeap.top().particle);
+        maxHeap.pop();
+    }
+    std::reverse(topK.begin(), topK.end());
+    return topK;
 }
 
 void QuadNode::subdivide() {
@@ -127,3 +183,5 @@ void QuadNode::removeEmptyNode() {
     parent = onlyBrother;
     parent->removeEmptyNode();
 }
+
+
