@@ -30,28 +30,22 @@ std::vector<std::shared_ptr<Particle>> QuadTree::knn(Point2D query, size_t k) {
             auto children = curr.node->getChildren();
             // cant prune
             if (maxHeap.size() < k) {
-                pq.emplace(children[0], query);
-                pq.emplace(children[1], query);
-                pq.emplace(children[2], query);
-                pq.emplace(children[3], query);
-            }
+                for (const auto &child: children) {
+                    pq.emplace(child, query);
+                }
+            } else {
                 // can prune, if its further than the worst nearest no need to check
-            else {
-                if (children[0]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
-                    pq.emplace(children[0], query);
-                } else if (children[1]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
-                    pq.emplace(children[1], query);
-                } else if (children[2]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
-                    pq.emplace(children[2], query);
-                } else if (children[3]->getBoundary().distance(query) < maxHeap.top().distToQuery) {
-                    pq.emplace(children[3], query);
+                for (const auto &child: children) {
+                    if (child->getBoundary().distance(query).getValue() <= maxHeap.top().distToQuery) {
+                        pq.emplace(child, query);
+                    }
                 }
             }
         } else {
             for (const std::shared_ptr<Particle> &p: curr.node->getParticles()) {
                 if (maxHeap.size() < k) {
                     maxHeap.emplace(p, query);
-                } else if (maxHeap.top().distToQuery > query.distance(p->getPosition())) {
+                } else if (maxHeap.top().distToQuery > query.distance(p->getPosition()).getValue()) {
                     maxHeap.pop();
                     maxHeap.emplace(p, query);
                 }
@@ -61,12 +55,13 @@ std::vector<std::shared_ptr<Particle>> QuadTree::knn(Point2D query, size_t k) {
     }
 
     std::vector<std::shared_ptr<Particle>> topK;
-    topK.reserve(k);
+//    std::cout << "max in knn is: " << maxHeap.top().distToQuery << std::endl;
+//    topK.reserve(k);
     while (!maxHeap.empty()) {
         topK.push_back(maxHeap.top().particle);
         maxHeap.pop();
     }
-    std::reverse(topK.begin(), topK.end());
+//    std::reverse(topK.begin(), topK.end());
     return topK;
 }
 

@@ -20,10 +20,10 @@ public:
     Point2D getCenter() const { return (pmin + pmax) / 2.0f; }
 
     NType distance(const Point2D &p) const {
-        NType dx = NType::max(std::max(pmin.getX() - p.getX(), p.getX() - pmax.getX()), NType(0.));
-        NType dy = NType::max(std::max(pmin.getY() - p.getY(), p.getY() - pmax.getY()), NType(0.));
+        NType dx = NType::max(NType ::max(pmin.getX() - p.getX(), p.getX() - pmax.getX()), NType(0.0));
+        NType dy = NType::max(NType ::max(pmin.getY() - p.getY(), p.getY() - pmax.getY()), NType(0.0));
 
-        return NType::sqrt((dx * dx) + (dy * dy));
+        return NType::sqrt(NType::pow(dx, 2.0) + NType::pow(dy, 2.0));
     }
 
     bool contains(const Point2D &point) const {

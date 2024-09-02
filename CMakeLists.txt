@@ -3,6 +3,8 @@ project(quadtree)
 
 set(CMAKE_CXX_STANDARD 17)
 
+#SET(CMAKE_CXX_FLAGS_DEBUG "-g")
+
 add_executable(quadtree
         Particle.h
         QuadTree.h

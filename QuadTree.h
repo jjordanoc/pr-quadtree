@@ -64,11 +64,11 @@ private:
     struct KNNTreePair {
         KNNTreePair(std::shared_ptr<QuadNode> _node, Point2D _query) {
             node = _node;
-            distToQuery = node->getBoundary().distance(_query);
+            distToQuery = node->getBoundary().distance(_query).getValue();
         }
 //        KNNTreePair(double distToQuery, std::shared_ptr<QuadNode>node) : distToQuery(distToQuery), node(node) {}
 
-        NType distToQuery;
+        float distToQuery;
         std::shared_ptr<QuadNode> node;
 
         bool operator<(const KNNTreePair &rhs) const {
@@ -90,12 +90,12 @@ private:
 
     struct KNNParticlePair {
         KNNParticlePair(std::shared_ptr<Particle> particle, Point2D query) : particle(particle) {
-            distToQuery = query.distance(particle->getPosition());
+            distToQuery = query.distance(particle->getPosition()).getValue();
         }
 
 //        KNNParticlePair(double distToQuery, Particle particle) : distToQuery(distToQuery), particle(particle) {}
 
-        NType distToQuery;
+        float distToQuery;
         std::shared_ptr<Particle> particle;
 
         bool operator<(const KNNParticlePair &rhs) const {
