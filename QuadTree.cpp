@@ -96,7 +96,8 @@ bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
             bool didInsert = false;
             for (const auto &child: children) {
                 if (child->boundary.contains(childParticle->getPosition())) {
-                    didInsert |= child->insert(childParticle);
+                    child->insert(childParticle);
+                    didInsert = true;
                 }
             }
             if (!didInsert) {
@@ -109,12 +110,12 @@ bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
         bool didInsert = false;
         for (const auto &child: children) {
             if (child->boundary.contains(particle->getPosition())) {
-                didInsert |= child->insert(particle);
+                child->insert(particle);
+                didInsert = true;
             }
         }
         if (!didInsert) {
             relocateParticle(particle);
-
         }
     } else {
         // just add particle
