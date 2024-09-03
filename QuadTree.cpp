@@ -61,7 +61,7 @@ std::vector<std::shared_ptr<Particle>> QuadTree::knn(Point2D query, size_t k) {
         topK.push_back(maxHeap.top().particle);
         maxHeap.pop();
     }
-//    std::reverse(topK.begin(), topK.end());
+    std::reverse(topK.begin(), topK.end());
     return topK;
 }
 
