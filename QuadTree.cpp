@@ -55,8 +55,6 @@ std::vector<std::shared_ptr<Particle>> QuadTree::knn(Point2D query, size_t k) {
     }
 
     std::vector<std::shared_ptr<Particle>> topK;
-//    std::cout << "max in knn is: " << maxHeap.top().distToQuery << std::endl;
-//    topK.reserve(k);
     while (!maxHeap.empty()) {
         topK.push_back(maxHeap.top().particle);
         maxHeap.pop();
@@ -136,10 +134,6 @@ void QuadNode::updateNode() {
             if (!boundary.contains(particle->getPosition())) {
                 // remove from leaf
                 particles.erase(particles.begin() + i);
-                // if empty, collapse
-//                if (particles.empty()) {
-//                    removeEmptyNode();
-//                }
                 // relocate recursively
                 relocateParticle(particle);
                 // might split

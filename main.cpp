@@ -226,12 +226,10 @@ bool verifyKnnSearch(QuadTree& tree, const std::vector<std::shared_ptr<Particle>
 
     // Verificar si ambos resultados son equivalentes y en el mismo orden
     if (knnTree.size() != knnBruteForce.size()) {
-        std::cout << "diff size" << std::endl;
         return false;
     }
     for (size_t i = 0; i < k; ++i) {
         if (knnTree[i] != knnBruteForce[i]) {
-            std::cout << "diff elem" << std::endl;
             return false;
         }
     }
