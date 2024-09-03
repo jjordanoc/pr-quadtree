@@ -23,7 +23,8 @@ public:
     void updatePosition(const Rect& boundary);
 
     friend std::ostream& operator<<(std::ostream& os, const Particle& p) {
-        os << "Position: " << p.position << " Velocity: " << p.velocity;
+        os << "Position: " << p.position ;
+//        << " Velocity: " << p.velocity;
         return os;
     }
 };

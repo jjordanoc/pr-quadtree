@@ -82,41 +82,39 @@ bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
         // add to particles but overflows
         addToBucket(particle);
 
-        // create 4 regions and link to parent
+        // create 4 regions asand link to parent
         subdivide();
 
-        // insert the particles in the children
-        for (const std::shared_ptr<Particle> &childParticle: particles) {
-            if (children[0]->boundary.contains(childParticle->getPosition())) {
-                children[0]->insert(childParticle);
-            } else if (children[1]->boundary.contains(childParticle->getPosition())) {
-                children[1]->insert(childParticle);
-            } else if (children[2]->boundary.contains(childParticle->getPosition())) {
-                children[2]->insert(childParticle);
-            } else if (children[3]->boundary.contains(childParticle->getPosition())) {
-                children[3]->insert(childParticle);
-            } else {
-//                throw std::runtime_error("Child has no candidate node.");
-//                std:: cout << "Child has no candidate node (leaf)." << std::endl;
-//                std::cout << "Particle: " << *childParticle << std::endl;
-                children[3]->insert(childParticle); // misplace anyway
-            }
-        }
+        auto particlesCopy = particles;
+
+        // update current node
         clearParticles();
         _isLeaf = false;
+
+        // insert the particles in the children
+        for (const std::shared_ptr<Particle> &childParticle: particlesCopy) {
+            bool didInsert = false;
+            for (const auto &child: children) {
+                if (child->boundary.contains(childParticle->getPosition())) {
+                    didInsert |= child->insert(childParticle);
+                }
+            }
+            if (!didInsert) {
+                relocateParticle(childParticle);
+            }
+        }
+
+
     } else if (!_isLeaf) {
-        if (children[0]->boundary.contains(particle->getPosition())) {
-            children[0]->insert(particle);
-        } else if (children[1]->boundary.contains(particle->getPosition())) {
-            children[1]->insert(particle);
-        } else if (children[2]->boundary.contains(particle->getPosition())) {
-            children[2]->insert(particle);
-        } else if (children[3]->boundary.contains(particle->getPosition())) {
-            children[3]->insert(particle);
-        } else {
-//            std:: cout << "Child has no candidate node (not leaf)." << std::endl;
-//            std::cout << "Particle: " << *particle << std::endl;
-            children[3]->insert(particle); // misplace anyway
+        bool didInsert = false;
+        for (const auto &child: children) {
+            if (child->boundary.contains(particle->getPosition())) {
+                didInsert |= child->insert(particle);
+            }
+        }
+        if (!didInsert) {
+            relocateParticle(particle);
+
         }
     } else {
         // just add particle
@@ -128,23 +126,24 @@ bool QuadNode::insert(const std::shared_ptr<Particle> &particle) {
 void QuadNode::updateNode() {
     if (!_isLeaf) {
         // update children
-        children[0]->updateNode();
-        children[1]->updateNode();
-        children[2]->updateNode();
-        children[3]->updateNode();
+        for (const auto &child: children) {
+            child->updateNode();
+        }
     } else {
-//        auto it = particles.begin();
         for (size_t i = 0; i < particles.size(); ++i) {
             auto particle = particles[i];
             if (!boundary.contains(particle->getPosition())) {
                 // remove from leaf
                 particles.erase(particles.begin() + i);
                 // if empty, collapse
-                if (particles.empty()) {
-                    removeEmptyNode();
-                }
+//                if (particles.empty()) {
+//                    removeEmptyNode();
+//                }
                 // relocate recursively
                 relocateParticle(particle);
+                // might split
+                updateNode();
+
             }
         }
     }

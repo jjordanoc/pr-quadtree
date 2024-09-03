@@ -233,19 +233,20 @@ bool verifyKnnSearch(QuadTree& tree, const std::vector<std::shared_ptr<Particle>
             return queryPoint.distance(a->getPosition()) < queryPoint.distance(b->getPosition());
         });
 
-//        std::cout << "Puntos knn optimo: " << std::endl;
-//        for (auto res : knnResult) {
-//            std::cout << *res << " d: " << res->getPosition().distance(queryPoint) << std::endl;
-//        }
-//        std::cout << std::endl;
-//        std::cout << "Puntos knn brute force: " << std::endl;
-//        for (auto res : bruteForceResult) {
-//            std::cout << *res << " d: " << res->getPosition().distance(queryPoint) << std::endl;
-//        }
-//        std::cout << std::endl;
+
         if (knnResult != bruteForceResult) {
             std::cout << "k-NN search failed for query point " << queryPoint << " and k = " << k << std::endl;
-            auto knnResult = tree.knn(queryPoint, k);
+            std::cout << "Puntos knn optimo: " << std::endl;
+            for (auto res: knnResult) {
+                std::cout << *res << " d: " << res->getPosition().distance(queryPoint) << std::endl;
+            }
+            std::cout << std::endl;
+            std::cout << "Puntos knn brute force: " << std::endl;
+            for (auto res: bruteForceResult) {
+                std::cout << *res << " d: " << res->getPosition().distance(queryPoint) << std::endl;
+            }
+            std::cout << std::endl;
+//            auto knnResult = tree.knn(queryPoint, k);
             return false;
         }
     }
@@ -310,7 +311,7 @@ int main() {
     std::vector<std::shared_ptr<Particle>> particles = generateRandomParticles(numParticles, boundary, maxVelocity);
     tree.insert(particles);
 
-    // Ejecutar pruebas
+//    // Ejecutar pruebas
     allTestsPassed = runTesting(tree, particles, boundary);
     if (allTestsPassed) {
         std::cout << "All tests passed!" << std::endl;
